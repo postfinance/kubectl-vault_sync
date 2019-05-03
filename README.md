@@ -1,9 +1,9 @@
 # vault_sync plugin
 
-[![Release](https://img.shields.io/github/release/zbindenren/kubectl-vault_sync.svg?style=for-the-badge)](https://github.com/zbindenren/kubectl-vault_sync/releases/latest)
+[![Release](https://img.shields.io/github/release/postfinance/kubectl-vault_sync.svg?style=for-the-badge)](https://github.com/postfinance/kubectl-vault_sync/releases/latest)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge)](/LICENSE.md)
-[![Travis](https://img.shields.io/travis/zbindenren/kubectl-vault_sync/master.svg?style=for-the-badge)](https://travis-ci.org/zbindenren/kubectl-vault_sync)
-[![Go Report Card](https://img.shields.io/badge/GOREPORT-A%2B-brightgreen.svg?style=for-the-badge)](https://goreportcard.com/report/github.com/zbindenren/kubectl-vault_sync)
+[![Travis](https://img.shields.io/travis/postfinance/kubectl-vault_sync/master.svg?style=for-the-badge)](https://travis-ci.org/postfinance/kubectl-vault_sync)
+[![Go Report Card](https://img.shields.io/badge/GOREPORT-A%2B-brightgreen.svg?style=for-the-badge)](https://goreportcard.com/report/github.com/postfinance/kubectl-vault_sync)
 
 [![asciicast](https://asciinema.org/a/SmeN2wnX4EfeFH4bRFjEEH6ss.svg)](https://asciinema.org/a/SmeN2wnX4EfeFH4bRFjEEH6ss)
 
