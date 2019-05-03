@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/postfinance/kubectl-vault-sync/pkg/job"
 	"github.com/spf13/cobra"
-	"github.com/zbindenren/kubectl-vault-sync/pkg/job"
 
 	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"

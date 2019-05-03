@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
+	"github.com/postfinance/kubectl-vault-sync/pkg/info"
+	"github.com/postfinance/kubectl-vault-sync/pkg/plugin"
 	"github.com/spf13/pflag"
-	"github.com/zbindenren/kubectl-vault-sync/pkg/info"
-	"github.com/zbindenren/kubectl-vault-sync/pkg/plugin"
 
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
