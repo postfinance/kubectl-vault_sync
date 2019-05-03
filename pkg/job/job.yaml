@@ -1,0 +1,37 @@
+metadata:
+  creationTimestamp: null
+  labels:
+    job: vault-sync
+  name: vault-sync
+spec:
+  template:
+    metadata:
+      creationTimestamp: null
+    spec:
+      containers:
+      - env:
+        - name: VAULT_TOKEN_PATH
+          value: /home/vault/.vault-token
+        imagePullPolicy: Always
+        name: vault-sync
+        resources: {}
+        volumeMounts:
+        - mountPath: /home/vault
+          name: vault-token
+      initContainers:
+      - env:
+        - name: VAULT_TOKEN_PATH
+          value: /home/vault/.vault-token
+        imagePullPolicy: Always
+        name: vault-auth
+        resources: {}
+        volumeMounts:
+        - mountPath: /home/vault
+          name: vault-token
+      restartPolicy: Never
+      serviceAccountName: vault-auth
+      volumes:
+      - emptyDir:
+          medium: Memory
+        name: vault-token
+status: {}

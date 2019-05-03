@@ -1,0 +1,70 @@
+metadata:
+  creationTimestamp: null
+  labels:
+    job: vault-sync
+    jobSuffix: suffix
+  name: vault-sync-suffix
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      creationTimestamp: null
+    spec:
+      containers:
+      - env:
+        - name: SECRET_PREFIX
+          value: prefix-
+        - name: VAULT_ADDR
+          value: https://vault.io
+        - name: VAULT_CACERT
+          value: /etc/pki/vault/truststore.pem
+        - name: VAULT_SECRETS
+          value: secret/path
+        - name: VAULT_TOKEN_PATH
+          value: /home/vault/.vault-token
+        image: sync-image
+        imagePullPolicy: Always
+        name: vault-sync
+        resources: {}
+        volumeMounts:
+        - mountPath: /home/vault
+          name: vault-token
+        - mountPath: /etc/pki/vault
+          name: truststore
+          readOnly: true
+      initContainers:
+      - env:
+        - name: VAULT_ADDR
+          value: https://vault.io
+        - name: VAULT_AUTH_MOUNT_PATH
+          value: mountpath
+        - name: VAULT_CACERT
+          value: /etc/pki/vault/truststore.pem
+        - name: VAULT_ROLE
+          value: role
+        - name: VAULT_TOKEN_PATH
+          value: /home/vault/.vault-token
+        image: auth-image
+        imagePullPolicy: Always
+        name: vault-auth
+        resources: {}
+        volumeMounts:
+        - mountPath: /home/vault
+          name: vault-token
+        - mountPath: /etc/pki/vault
+          name: truststore
+          readOnly: true
+      restartPolicy: Never
+      serviceAccountName: vault-auth
+      volumes:
+      - emptyDir:
+          medium: Memory
+        name: vault-token
+      - name: truststore
+        secret:
+          items:
+          - key: truststore.pem
+            path: truststore.pem
+          secretName: truststore-secret
+  ttlSecondsAfterFinished: 3600
+status: {}
