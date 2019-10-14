@@ -51,8 +51,10 @@ Most command line options can be set with namespace annotations. For example:
 	* %[3]s: configures the mount path where the Kubernetes auth method is enabled
 
 `
-	errNoContext = fmt.Errorf("no context is currently set, use %q to select a new one", "kubectl config use-context <context>")
-	dfltTimeout  = 30 * time.Second
+	errNoContext   = fmt.Errorf("no context is currently set, use %q to select a new one", "kubectl config use-context <context>")
+	errNoNamespace = fmt.Errorf("no namespace is set for current context, use %q to set one or pass it using %q",
+		"kubectl config set-context --current --namespace=<namespace>", "--namespace")
+	dfltTimeout = 30 * time.Second
 )
 
 const (
@@ -77,7 +79,8 @@ const (
 // SyncOptions provides information required to synchronize
 // vault keys as kubernetes secrets.
 type SyncOptions struct {
-	configFlags *genericclioptions.ConfigFlags
+	configFlags      *genericclioptions.ConfigFlags
+	currentNamespace string
 
 	userSpecifiedVaultKey         string
 	userSpecifiedVaultKeyPrefix   string
@@ -172,6 +175,15 @@ func (o *SyncOptions) Validate() error {
 	if len(o.rawConfig.CurrentContext) == 0 {
 		return errNoContext
 	}
+
+	o.currentNamespace = o.rawConfig.Contexts[o.rawConfig.CurrentContext].Namespace
+	if len(*o.configFlags.Namespace) != 0 {
+		o.currentNamespace = *o.configFlags.Namespace
+	}
+	if len(o.currentNamespace) == 0 {
+		return errNoNamespace
+	}
+
 	if len(o.args) > 1 {
 		return errors.New("only one or none argument is allowed")
 	}
@@ -181,7 +193,6 @@ func (o *SyncOptions) Validate() error {
 
 // Run creates a kubernetes batch job that starts a sync container.
 func (o *SyncOptions) Run() error {
-	currentNs := o.rawConfig.Contexts[o.rawConfig.CurrentContext].Namespace
 	restConfig, err := o.configFlags.ToRESTConfig()
 	if err != nil {
 		return err
@@ -191,7 +202,7 @@ func (o *SyncOptions) Run() error {
 		return err
 	}
 	nsClient := clientset.CoreV1().Namespaces()
-	ns, err := nsClient.Get(currentNs, metav1.GetOptions{})
+	ns, err := nsClient.Get(o.currentNamespace, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("could not create namespace api client: %s", err)
 	}
@@ -201,7 +212,7 @@ func (o *SyncOptions) Run() error {
 	}
 
 	// delete completed jobs
-	batchClient := clientset.BatchV1().Jobs(currentNs)
+	batchClient := clientset.BatchV1().Jobs(o.currentNamespace)
 	jobs, err := batchClient.List(metav1.ListOptions{LabelSelector: fmt.Sprintf("job=%s", job.Name)})
 	if err != nil {
 		return fmt.Errorf("could not list batch jobs: %s", err)
