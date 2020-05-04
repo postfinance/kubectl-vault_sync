@@ -2,6 +2,7 @@
 package plugin
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -208,7 +209,10 @@ func (o *SyncOptions) Run() error {
 
 	nsClient := clientset.CoreV1().Namespaces()
 
-	ns, err := nsClient.Get(o.currentNamespace, metav1.GetOptions{})
+	ctx, cancel := context.WithTimeout(context.Background(), o.userSpecifiedTimeout)
+	defer cancel()
+
+	ns, err := nsClient.Get(ctx, o.currentNamespace, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("could not create namespace api client: %s", err)
 	}
@@ -220,7 +224,10 @@ func (o *SyncOptions) Run() error {
 	// delete completed jobs
 	batchClient := clientset.BatchV1().Jobs(o.currentNamespace)
 
-	jobs, err := batchClient.List(metav1.ListOptions{LabelSelector: fmt.Sprintf("job=%s", job.Name)})
+	ctx, cancel = context.WithTimeout(context.Background(), o.userSpecifiedTimeout)
+	defer cancel()
+
+	jobs, err := batchClient.List(ctx, metav1.ListOptions{LabelSelector: fmt.Sprintf("job=%s", job.Name)})
 	if err != nil {
 		return fmt.Errorf("could not list batch jobs: %s", err)
 	}
@@ -233,7 +240,10 @@ func (o *SyncOptions) Run() error {
 			continue
 		}
 
-		if err := batchClient.Delete(j.Name, &metav1.DeleteOptions{
+		ctx, cancel = context.WithTimeout(context.Background(), o.userSpecifiedTimeout)
+		defer cancel()
+
+		if err := batchClient.Delete(ctx, j.Name, metav1.DeleteOptions{
 			PropagationPolicy: &deletePolicy,
 		}); err != nil {
 			return fmt.Errorf("could not delete batch job %s: %s", j.Name, err)
@@ -274,7 +284,10 @@ func (o *SyncOptions) Run() error {
 
 	fmt.Printf("creating sync batch job to synchronize '%s' vault key\n", secretPath)
 
-	_, err = batchClient.Create(batchJob)
+	ctx, cancel = context.WithTimeout(context.Background(), o.userSpecifiedTimeout)
+	defer cancel()
+
+	_, err = batchClient.Create(ctx, batchJob, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("could not create batch job %s: %s", batchJob.Name, err)
 	}
@@ -284,6 +297,7 @@ func (o *SyncOptions) Run() error {
 	}
 
 	watch, err := batchClient.Watch(
+		context.TODO(),
 		metav1.ListOptions{
 			LabelSelector: fmt.Sprintf("job=%s,jobSuffix=%s", job.Name, suffix),
 		},
