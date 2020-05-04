@@ -70,8 +70,9 @@ func WithVaultSecrets(secrets ...string) func(*batchv1.Job) {
 // WithSecretPrefix adds prefix to all secrets.
 func WithSecretPrefix(prefix string) func(*batchv1.Job) {
 	if !strings.HasSuffix(prefix, "-") {
-		prefix = prefix + "-"
+		prefix += "-"
 	}
+
 	return func(b *batchv1.Job) {
 		e := apiv1.EnvVar{
 			Name:  "SECRET_PREFIX",
@@ -84,9 +85,10 @@ func WithSecretPrefix(prefix string) func(*batchv1.Job) {
 // WithTruststore configures truststore to access vault api server.
 func WithTruststore(secretName string) func(*batchv1.Job) {
 	return func(b *batchv1.Job) {
-		if len(secretName) == 0 {
+		if secretName == "" {
 			return
 		}
+
 		volume := apiv1.Volume{
 			Name: "truststore",
 			VolumeSource: apiv1.VolumeSource{
@@ -110,6 +112,7 @@ func WithTruststore(secretName string) func(*batchv1.Job) {
 			Name:  "VAULT_CACERT",
 			Value: "/etc/pki/vault/truststore.pem",
 		}
+
 		b.Spec.Template.Spec.Volumes = append(b.Spec.Template.Spec.Volumes, volume)
 		b.Spec.Template.Spec.InitContainers[0].VolumeMounts = append(b.Spec.Template.Spec.InitContainers[0].VolumeMounts, mount)
 		b.Spec.Template.Spec.Containers[0].VolumeMounts = append(b.Spec.Template.Spec.Containers[0].VolumeMounts, mount)
@@ -118,7 +121,7 @@ func WithTruststore(secretName string) func(*batchv1.Job) {
 	}
 }
 
-//WithBackoffLimit configures the backoff limit.
+// WithBackoffLimit configures the backoff limit.
 func WithBackoffLimit(limit int32) func(*batchv1.Job) {
 	return func(b *batchv1.Job) {
 		b.Spec.BackoffLimit = int32Ptr(limit)

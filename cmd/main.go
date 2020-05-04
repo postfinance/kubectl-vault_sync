@@ -23,6 +23,7 @@ func main() {
 	root := plugin.NewCmdSync(genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr})
 	root.SetVersionTemplate("{{ .Version }}\n")
 	root.Version = v.String()
+
 	if err := root.Execute(); err != nil {
 		os.Exit(1)
 	}

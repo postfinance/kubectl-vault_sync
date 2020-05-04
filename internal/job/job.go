@@ -1,3 +1,4 @@
+// Package job creates sync jobs.
 package job
 
 import (
@@ -83,6 +84,7 @@ func New(options ...func(*batchv1.Job)) *batchv1.Job {
 	for _, opt := range options {
 		opt(b)
 	}
+
 	sortEnv(b.Spec.Template.Spec.Containers[0].Env)
 	sortEnv(b.Spec.Template.Spec.InitContainers[0].Env)
 

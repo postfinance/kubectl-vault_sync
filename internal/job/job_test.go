@@ -13,7 +13,6 @@ import (
 )
 
 func TestNew(t *testing.T) {
-
 	ttl, err := time.ParseDuration("1h")
 	require.NoError(t, err)
 
@@ -46,6 +45,7 @@ func TestNew(t *testing.T) {
 		},
 	}
 
+	// nolint: scopelint
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := bytes.NewBufferString("")
@@ -58,12 +58,14 @@ func TestNew(t *testing.T) {
 				if !os.IsNotExist(err) {
 					t.Error(err)
 				}
-				ioutil.WriteFile(tc.expectedJobFile, actual.Bytes(), 0644)
+				err = ioutil.WriteFile(tc.expectedJobFile, actual.Bytes(), 0644)
+				require.NoError(t, err)
 				actual = bytes.NewBufferString(string(expected))
 			}
-			if string(expected) != string(actual.Bytes()) {
-				ioutil.WriteFile("actual-"+tc.expectedJobFile, actual.Bytes(), 0644)
-				t.Errorf("Expected %s, got %s", string(expected), string(actual.Bytes()))
+			if string(expected) != actual.String() {
+				err = ioutil.WriteFile("actual-"+tc.expectedJobFile, actual.Bytes(), 0644)
+				require.NoError(t, err)
+				t.Errorf("Expected %s, got %s", string(expected), actual.String())
 			}
 		})
 	}

@@ -1,3 +1,4 @@
+// Package info creates version information
 package info
 
 import (
@@ -29,6 +30,7 @@ func (v Version) String() string {
 	if err := t.ExecuteTemplate(&buf, "version", v); err != nil {
 		panic(err)
 	}
+
 	return strings.TrimSpace(buf.String())
 }
 
@@ -38,6 +40,7 @@ func New(program, version, date, commit string) Version {
 	if len(commit) >= 8 {
 		revision = commit[:8]
 	}
+
 	return Version{
 		Program:   program,
 		Version:   version,

@@ -1,3 +1,4 @@
+// Package plugin contains the plugin command logic.
 package plugin
 
 import (
@@ -63,10 +64,10 @@ const (
 	vaultSyncImageAnnotation   = "sync.vault.postfinance.ch/sync-image"
 	vaultAuthImageAnnotation   = "sync.vault.postfinance.ch/auth-image"
 	vaultMountpathAnnotation   = "sync.vault.postfinance.ch/mount-path"
-	vaultSecretspathAnnotation = "sync.vault.postfinance.ch/secrets-path"
+	vaultSecretspathAnnotation = "sync.vault.postfinance.ch/secrets-path" // nolint: gosec
 	vaultRoleAnnotation        = "sync.vault.postfinance.ch/role"
 	vaultAddrAnnotation        = "sync.vault.postfinance.ch/addr"
-	vaultTrustSecretAnnotation = "sync.vault.postfinance.ch/trust-secret"
+	vaultTrustSecretAnnotation = "sync.vault.postfinance.ch/trust-secret" // nolint: gosec
 )
 
 const (
@@ -82,7 +83,6 @@ type SyncOptions struct {
 	configFlags      *genericclioptions.ConfigFlags
 	currentNamespace string
 
-	userSpecifiedVaultKey         string
 	userSpecifiedVaultKeyPrefix   string
 	userSpecifiedVaultRole        string
 	userSpecifiedVaultMountpath   string
@@ -163,6 +163,7 @@ func (o *SyncOptions) Complete(cmd *cobra.Command, args []string) error {
 
 	var err error
 	o.rawConfig, err = o.configFlags.ToRawKubeConfigLoader().RawConfig()
+
 	if err != nil {
 		return err
 	}
@@ -172,15 +173,16 @@ func (o *SyncOptions) Complete(cmd *cobra.Command, args []string) error {
 
 // Validate ensures that all required arguments and flag values are provided
 func (o *SyncOptions) Validate() error {
-	if len(o.rawConfig.CurrentContext) == 0 {
+	if o.rawConfig.CurrentContext == "" {
 		return errNoContext
 	}
 
 	o.currentNamespace = o.rawConfig.Contexts[o.rawConfig.CurrentContext].Namespace
-	if len(*o.configFlags.Namespace) != 0 {
+	if *o.configFlags.Namespace != "" {
 		o.currentNamespace = *o.configFlags.Namespace
 	}
-	if len(o.currentNamespace) == 0 {
+
+	if o.currentNamespace == "" {
 		return errNoNamespace
 	}
 
@@ -192,16 +194,20 @@ func (o *SyncOptions) Validate() error {
 }
 
 // Run creates a kubernetes batch job that starts a sync container.
+// nolint: gocyclo, funlen
 func (o *SyncOptions) Run() error {
 	restConfig, err := o.configFlags.ToRESTConfig()
 	if err != nil {
 		return err
 	}
+
 	clientset, err := kubernetes.NewForConfig(restConfig)
 	if err != nil {
 		return err
 	}
+
 	nsClient := clientset.CoreV1().Namespaces()
+
 	ns, err := nsClient.Get(o.currentNamespace, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("could not create namespace api client: %s", err)
@@ -213,15 +219,20 @@ func (o *SyncOptions) Run() error {
 
 	// delete completed jobs
 	batchClient := clientset.BatchV1().Jobs(o.currentNamespace)
+
 	jobs, err := batchClient.List(metav1.ListOptions{LabelSelector: fmt.Sprintf("job=%s", job.Name)})
 	if err != nil {
 		return fmt.Errorf("could not list batch jobs: %s", err)
 	}
+
 	deletePolicy := metav1.DeletePropagationForeground
-	for _, j := range jobs.Items {
+
+	for i := range jobs.Items {
+		j := jobs.Items[i]
 		if j.Status.Active > 0 {
 			continue
 		}
+
 		if err := batchClient.Delete(j.Name, &metav1.DeleteOptions{
 			PropagationPolicy: &deletePolicy,
 		}); err != nil {
@@ -233,6 +244,7 @@ func (o *SyncOptions) Run() error {
 	if len(o.args) > 0 {
 		secretPath = path.Join(o.userSpecifiedVaultSecretsPath, o.args[0])
 	}
+
 	ttl, _ := time.ParseDuration(dfltTTL)
 	suffix := time.Now().Format("20060102-150405")
 	batchJob := job.New(
@@ -248,6 +260,7 @@ func (o *SyncOptions) Run() error {
 		job.WithVaultSecrets(secretPath),
 		job.WithTruststore(o.userSpecifiedVaultTrustSecret),
 	)
+
 	if o.userSpecifiedYAML {
 		e := json.NewYAMLSerializer(json.DefaultMetaFactory, nil, nil)
 
@@ -255,9 +268,12 @@ func (o *SyncOptions) Run() error {
 		if err != nil {
 			return fmt.Errorf("failed to encode yaml: %s", err)
 		}
+
 		return nil
 	}
+
 	fmt.Printf("creating sync batch job to synchronize '%s' vault key\n", secretPath)
+
 	_, err = batchClient.Create(batchJob)
 	if err != nil {
 		return fmt.Errorf("could not create batch job %s: %s", batchJob.Name, err)
@@ -266,6 +282,7 @@ func (o *SyncOptions) Run() error {
 	if !o.userSpecifiedWait {
 		return nil
 	}
+
 	watch, err := batchClient.Watch(
 		metav1.ListOptions{
 			LabelSelector: fmt.Sprintf("job=%s,jobSuffix=%s", job.Name, suffix),
@@ -282,9 +299,11 @@ func (o *SyncOptions) Run() error {
 			if !ok {
 				return errors.New("unexpected whatch type")
 			}
+
 			if j.Status.Succeeded > 0 {
 				return nil
 			}
+
 			if j.Status.Failed > 0 {
 				return errors.New("vault-sync job failed")
 			}
@@ -294,27 +313,31 @@ func (o *SyncOptions) Run() error {
 	}
 }
 
+// nolint: gocyclo
 func (o *SyncOptions) optionsFromNamespace(ns *v1.Namespace) error {
 	var ok bool
-	if len(o.userSpecifiedVaultSecretsPath) == 0 {
+	if o.userSpecifiedVaultSecretsPath == "" {
 		o.userSpecifiedVaultSecretsPath, ok = ns.GetAnnotations()[vaultSecretspathAnnotation]
 		if !ok {
 			return fmt.Errorf("namespace %s is not configured for vault synchronization: annotation %s not found", ns.Name, vaultSecretspathAnnotation)
 		}
 	}
-	if len(o.userSpecifiedVaultRole) == 0 {
+
+	if o.userSpecifiedVaultRole == "" {
 		o.userSpecifiedVaultRole, ok = ns.GetAnnotations()[vaultRoleAnnotation]
 		if !ok {
 			return fmt.Errorf("namespace %s is not configured for vault synchronization: annotation %s not found", ns.Name, vaultRoleAnnotation)
 		}
 	}
-	if len(o.userSpecifiedVaultAddr) == 0 {
+
+	if o.userSpecifiedVaultAddr == "" {
 		o.userSpecifiedVaultAddr, ok = ns.GetAnnotations()[vaultAddrAnnotation]
 		if !ok {
 			return fmt.Errorf("namespace %s is not configured for vault synchronization: annotation %s not found", ns.Name, vaultAddrAnnotation)
 		}
 	}
-	if len(o.userSpecifiedVaultMountpath) == 0 {
+
+	if o.userSpecifiedVaultMountpath == "" {
 		o.userSpecifiedVaultMountpath, ok = ns.GetAnnotations()[vaultMountpathAnnotation]
 		if !ok {
 			return fmt.Errorf("namespace %s is not configured for vault synchronization: annotation %s not found", ns.Name, vaultMountpathAnnotation)
@@ -322,7 +345,7 @@ func (o *SyncOptions) optionsFromNamespace(ns *v1.Namespace) error {
 	}
 
 	// optional
-	if len(o.userSpecifiedVaultTrustSecret) == 0 {
+	if o.userSpecifiedVaultTrustSecret == "" {
 		o.userSpecifiedVaultTrustSecret = ns.GetAnnotations()[vaultTrustSecretAnnotation]
 	}
 
@@ -346,5 +369,6 @@ func (o *SyncOptions) optionsFromNamespace(ns *v1.Namespace) error {
 			o.userSpecifiedVaultMountpath = mp
 		}
 	}
+
 	return nil
 }
