@@ -23,28 +23,29 @@ archives:
     name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}-{{ .Version }}"
     replacements:
       amd64: x86_64
-nfpm:
-  formats:
-    - rpm
-    - deb
-  vendor: "Die Schweizerische Post - PostFinance"
-  homepage: "https://github.com/postfinance/kubectl-vault_sync"
-  description: "Kubernetes plugin to synchronize vault secrets."
-  license: "MIT"
-  bindir: /usr/bin
-  name_template: "{{.ProjectName}}-{{.Version}}.{{.Arch}}"
-  replacements:
-    amd64: x86_64
-    386: 32bit
-    arm: ARM
-    arm64: ARM64
-    darwin: macOS
-    linux: Linux
-    windows: Windows
-    openbsd: OpenBSD
-    netbsd: NetBSD
-    freebsd: FreeBSD
-    dragonfly: DragonFlyBSD
+nfpms:
+  -
+    formats:
+      - rpm
+      - deb
+    vendor: "Die Schweizerische Post - PostFinance"
+    homepage: "https://github.com/postfinance/kubectl-vault_sync"
+    description: "Kubernetes plugin to synchronize vault secrets."
+    license: "MIT"
+    bindir: /usr/bin
+    file_name_template: "{{.ProjectName}}-{{.Version}}.{{.Arch}}"
+    replacements:
+      amd64: x86_64
+      386: 32bit
+      arm: ARM
+      arm64: ARM64
+      darwin: macOS
+      linux: Linux
+      windows: Windows
+      openbsd: OpenBSD
+      netbsd: NetBSD
+      freebsd: FreeBSD
+      dragonfly: DragonFlyBSD
 checksum:
   name_template: 'checksums.txt'
 snapshot:
