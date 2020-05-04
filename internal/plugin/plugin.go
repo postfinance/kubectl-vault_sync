@@ -296,8 +296,11 @@ func (o *SyncOptions) Run() error {
 		return nil
 	}
 
+	ctx, cancel = context.WithTimeout(context.Background(), o.userSpecifiedTimeout)
+	defer cancel()
+
 	watch, err := batchClient.Watch(
-		context.TODO(),
+		ctx,
 		metav1.ListOptions{
 			LabelSelector: fmt.Sprintf("job=%s,jobSuffix=%s", job.Name, suffix),
 		},
