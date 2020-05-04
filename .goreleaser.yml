@@ -4,7 +4,7 @@ env:
   - GOPROXY=https://gocenter.io
 project_name: kubectl-vault-sync
 changelog:
-  skip: true
+  skip: false
 release:
   github:
     owner: postfinance
