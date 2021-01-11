@@ -314,7 +314,7 @@ func (o *SyncOptions) Run() error {
 		case e := <-watch.ResultChan():
 			j, ok := e.Object.(*batchv1.Job)
 			if !ok {
-				return errors.New("unexpected whatch type")
+				return errors.New("unexpected watch type")
 			}
 
 			if j.Status.Succeeded > 0 {
