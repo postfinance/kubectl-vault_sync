@@ -33,6 +33,7 @@ nfpms:
     description: "Kubernetes plugin to synchronize vault secrets."
     license: "MIT"
     bindir: /usr/bin
+    maintainer: OpenSource PostFinance <opensource@postfinance.ch>
     file_name_template: "{{.ProjectName}}-{{.Version}}.{{.Arch}}"
     replacements:
       amd64: x86_64
