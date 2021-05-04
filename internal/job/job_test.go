@@ -58,12 +58,12 @@ func TestNew(t *testing.T) {
 				if !os.IsNotExist(err) {
 					t.Error(err)
 				}
-				err = ioutil.WriteFile(tc.expectedJobFile, actual.Bytes(), 0644)
+				err = ioutil.WriteFile(tc.expectedJobFile, actual.Bytes(), 0600)
 				require.NoError(t, err)
 				actual = bytes.NewBufferString(string(expected))
 			}
 			if string(expected) != actual.String() {
-				err = ioutil.WriteFile("actual-"+tc.expectedJobFile, actual.Bytes(), 0644)
+				err = ioutil.WriteFile("actual-"+tc.expectedJobFile, actual.Bytes(), 0600)
 				require.NoError(t, err)
 				t.Errorf("Expected %s, got %s", string(expected), actual.String())
 			}
