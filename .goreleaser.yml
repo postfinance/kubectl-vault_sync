@@ -1,7 +1,4 @@
 ---
-env:
-  - GO111MODULE=on
-  - GOPROXY=https://gocenter.io
 project_name: kubectl-vault-sync
 changelog:
   skip: false
