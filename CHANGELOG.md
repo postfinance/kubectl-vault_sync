@@ -1,3 +1,12 @@
+## 0.2.6 (2021-10-12)
+
+
+### Bug Fixes
+
+* **CI**: pin version in setup-go (f094797dfa985a7b47ea252018c62ca7acb74677)
+
+
+
 ## 0.2.5 (2021-05-05)
 
 
