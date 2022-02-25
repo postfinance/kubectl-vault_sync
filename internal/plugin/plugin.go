@@ -241,13 +241,14 @@ func (o *SyncOptions) Run() error {
 		}
 
 		ctx, cancel = context.WithTimeout(context.Background(), o.userSpecifiedTimeout)
-		defer cancel()
 
 		if err := batchClient.Delete(ctx, j.Name, metav1.DeleteOptions{
 			PropagationPolicy: &deletePolicy,
 		}); err != nil {
 			return fmt.Errorf("could not delete batch job %s: %s", j.Name, err)
 		}
+
+		cancel()
 	}
 
 	secretPath := strings.TrimRight(o.userSpecifiedVaultSecretsPath, "/") + "/"

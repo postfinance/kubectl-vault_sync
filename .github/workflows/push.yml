@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: docker://golangci/golangci-lint:v1.42.1
+    - uses: docker://golangci/golangci-lint:v1.44.2
       with:
         args: golangci-lint run --timeout=2m
       env:
@@ -17,8 +17,8 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/setup-go@v2
       with:
-        go-version: 1.17.2
-        stable: false
+        go-version: 1.17
+        stable: true
     - name: Run Unit tests
       run: go test -race -covermode atomic -coverprofile=profile.cov ./...
     - name: Send coverage
@@ -42,8 +42,8 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.3
-        stable: false
+        go-version: 1.17
+        stable: true
     - name: GoReleaser
       uses: goreleaser/goreleaser-action@v2
       with:

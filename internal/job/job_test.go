@@ -2,7 +2,6 @@ package job
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -52,18 +51,18 @@ func TestNew(t *testing.T) {
 			e := json.NewYAMLSerializer(json.DefaultMetaFactory, nil, nil)
 			err := e.Encode(tc.job, actual)
 			require.NoError(t, err)
-			expected, err := ioutil.ReadFile(tc.expectedJobFile)
+			expected, err := os.ReadFile(tc.expectedJobFile)
 			if err != nil {
 				// First run, write test data since it doesn't exist
 				if !os.IsNotExist(err) {
 					t.Error(err)
 				}
-				err = ioutil.WriteFile(tc.expectedJobFile, actual.Bytes(), 0600)
+				err = os.WriteFile(tc.expectedJobFile, actual.Bytes(), 0o600)
 				require.NoError(t, err)
 				actual = bytes.NewBufferString(string(expected))
 			}
 			if string(expected) != actual.String() {
-				err = ioutil.WriteFile("actual-"+tc.expectedJobFile, actual.Bytes(), 0600)
+				err = os.WriteFile("actual-"+tc.expectedJobFile, actual.Bytes(), 0o600)
 				require.NoError(t, err)
 				t.Errorf("Expected %s, got %s", string(expected), actual.String())
 			}
