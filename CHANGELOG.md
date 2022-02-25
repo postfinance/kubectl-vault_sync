@@ -1,4 +1,8 @@
-## 0.2.7 (2021-10-12)
+## 0.2.8 2022-02-25
+
+bump github.com/spf13/cobra version to 1.3.0
+
+## 0.2.7 
 
 Go module upgrades, CI pipeline upgrades (now using go 1.17 and golangci-lint 0.44.2), (new) linting fixes
 

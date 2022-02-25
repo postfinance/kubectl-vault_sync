@@ -26,14 +26,10 @@ linters-settings:
       - hugeParam
   gocyclo:
     min-complexity: 15
-  golint:
-    min-confidence: 0.8
   govet:
     check-shadowing: true
   lll:
     line-length: 140
-  maligned:
-    suggest-new: true
   misspell:
     locale: US
 
@@ -56,20 +52,16 @@ linters:
     # - godox
     - gofmt
     - goimports
-    - golint
     - goprintffuncname
     - gosec
     - gosimple
     - govet
     - ineffassign
-    - interfacer
     # - lll
-    - maligned
     - misspell
     - nakedret
     - prealloc
     - rowserrcheck
-    - scopelint
     - staticcheck
     - structcheck
     - stylecheck

@@ -29,7 +29,7 @@ jobs:
         $(go env GOPATH)/bin/goveralls -coverprofile=profile.cov -service=github
 
   release:
-    # if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v')
     needs:
     - lint
     - test
