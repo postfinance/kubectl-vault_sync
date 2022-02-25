@@ -1,3 +1,7 @@
+## 0.2.7 (2021-10-12)
+
+Go module upgrades, CI pipeline upgrades (now using go 1.17 and golangci-lint 0.44.2), (new) linting fixes
+
 ## 0.2.6 (2021-10-12)
 
 
