@@ -61,14 +61,17 @@ Most command line options can be set with namespace annotations. For example:
 
 const (
 	// Name is the plugin name
-	Name                       = "vault_sync"
-	vaultSyncImageAnnotation   = "sync.vault.postfinance.ch/sync-image"
-	vaultAuthImageAnnotation   = "sync.vault.postfinance.ch/auth-image"
-	vaultMountpathAnnotation   = "sync.vault.postfinance.ch/mount-path"
-	vaultSecretspathAnnotation = "sync.vault.postfinance.ch/secrets-path" // nolint: gosec
-	vaultRoleAnnotation        = "sync.vault.postfinance.ch/role"
-	vaultAddrAnnotation        = "sync.vault.postfinance.ch/addr"
-	vaultTrustSecretAnnotation = "sync.vault.postfinance.ch/trust-secret" // nolint: gosec
+	Name                         = "vault_sync"
+	vaultSyncImageAnnotation     = "sync.vault.postfinance.ch/sync-image"
+	vaultAuthImageAnnotation     = "sync.vault.postfinance.ch/auth-image"
+	vaultMountpathAnnotation     = "sync.vault.postfinance.ch/mount-path"
+	vaultSecretspathAnnotation   = "sync.vault.postfinance.ch/secrets-path"   // nolint: gosec
+	vaultSecretsPrefixAnnotation = "sync.vault.postfinance.ch/secrets-prefix" // nolint: gosec
+	vaultRoleAnnotation          = "sync.vault.postfinance.ch/role"
+	vaultAddrAnnotation          = "sync.vault.postfinance.ch/addr"
+	vaultTrustSecretAnnotation   = "sync.vault.postfinance.ch/trust-secret" // nolint: gosec
+
+	dfltSecretPrefix = "v3t-"
 )
 
 const (
@@ -84,17 +87,17 @@ type SyncOptions struct {
 	configFlags      *genericclioptions.ConfigFlags
 	currentNamespace string
 
-	userSpecifiedVaultKeyPrefix   string
-	userSpecifiedVaultRole        string
-	userSpecifiedVaultMountpath   string
-	userSpecifiedVaultSecretsPath string
-	userSpecifiedVaultSyncImage   string
-	userSpecifiedVaultAuthImage   string
-	userSpecifiedVaultAddr        string
-	userSpecifiedVaultTrustSecret string
-	userSpecifiedYAML             bool
-	userSpecifiedWait             bool
-	userSpecifiedTimeout          time.Duration
+	userSpecifiedVaultSecretsPrefix string
+	userSpecifiedVaultRole          string
+	userSpecifiedVaultMountpath     string
+	userSpecifiedVaultSecretsPath   string
+	userSpecifiedVaultSyncImage     string
+	userSpecifiedVaultAuthImage     string
+	userSpecifiedVaultAddr          string
+	userSpecifiedVaultTrustSecret   string
+	userSpecifiedYAML               bool
+	userSpecifiedWait               bool
+	userSpecifiedTimeout            time.Duration
 
 	rawConfig api.Config
 	args      []string
@@ -145,8 +148,8 @@ func NewCmdSync(streams genericclioptions.IOStreams) *cobra.Command {
 	cmd.Flags().StringVar(&o.userSpecifiedVaultMountpath, "vault-mountpath", dfltVaultMountpath,
 		fmt.Sprintf("Name of the mount path where the Kubernetes auth method is enabled. If not set, value is taken from namespace annotation '%s' if it exists.", vaultMountpathAnnotation))
 
-	cmd.Flags().StringVar(&o.userSpecifiedVaultKeyPrefix, "vault-secret-prefix", "v3t-",
-		"Prefix secrets in kubernetes. A vault secret with name 'confidential' will be synchronized in kubernetes with name '<prefix>-confidential'.")
+	cmd.Flags().StringVar(&o.userSpecifiedVaultSecretsPrefix, "vault-secret-prefix", dfltSecretPrefix,
+		fmt.Sprintf("Prefix secrets in kubernetes. A vault secret with name 'confidential' will be synchronized in kubernetes with name '<prefix>-confidential'. If not set, value is taken from namespace annotation '%s' if it exists.", vaultSecretsPrefixAnnotation))
 	cmd.Flags().BoolVar(&o.userSpecifiedYAML, "yaml", false,
 		"Print job yaml to stdout.")
 	cmd.Flags().BoolVar(&o.userSpecifiedWait, "wait", false,
@@ -264,7 +267,7 @@ func (o *SyncOptions) Run() error {
 		job.WithBackoffLimit(2),
 		job.WithAuthenticatorImage(o.userSpecifiedVaultAuthImage),
 		job.WithSynchronizerImage(o.userSpecifiedVaultSyncImage),
-		job.WithSecretPrefix(o.userSpecifiedVaultKeyPrefix),
+		job.WithSecretPrefix(o.userSpecifiedVaultSecretsPrefix),
 		job.WithVaultAddr(o.userSpecifiedVaultAddr),
 		job.WithVaultMountpath(o.userSpecifiedVaultMountpath),
 		job.WithVaultRole(o.userSpecifiedVaultRole),
@@ -338,6 +341,13 @@ func (o *SyncOptions) optionsFromNamespace(ns *v1.Namespace) error {
 		o.userSpecifiedVaultSecretsPath, ok = ns.GetAnnotations()[vaultSecretspathAnnotation]
 		if !ok {
 			return fmt.Errorf("namespace %s is not configured for vault synchronization: annotation %s not found", ns.Name, vaultSecretspathAnnotation)
+		}
+	}
+
+	if o.userSpecifiedVaultSecretsPrefix == dfltSecretPrefix {
+		prefix, pok := ns.GetAnnotations()[vaultSecretsPrefixAnnotation]
+		if pok {
+			o.userSpecifiedVaultSecretsPrefix = prefix
 		}
 	}
 

@@ -69,6 +69,10 @@ func WithVaultSecrets(secrets ...string) func(*batchv1.Job) {
 
 // WithSecretPrefix adds prefix to all secrets.
 func WithSecretPrefix(prefix string) func(*batchv1.Job) {
+	if prefix == "" {
+		return func(b *batchv1.Job) {}
+	}
+
 	if !strings.HasSuffix(prefix, "-") {
 		prefix += "-"
 	}
