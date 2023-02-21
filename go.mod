@@ -1,4 +1,4 @@
-module github.com/postfinance/kubectl-vault-sync
+module github.com/postfinance/kubectl-vault_sync
 
 go 1.17
 

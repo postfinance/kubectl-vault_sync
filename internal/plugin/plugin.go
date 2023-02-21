@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/postfinance/kubectl-vault-sync/internal/job"
+	"github.com/postfinance/kubectl-vault_sync/internal/job"
 	"github.com/spf13/cobra"
 
 	batchv1 "k8s.io/api/batch/v1"

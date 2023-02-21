@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/postfinance/kubectl-vault-sync/internal/info"
-	"github.com/postfinance/kubectl-vault-sync/internal/plugin"
+	"github.com/postfinance/kubectl-vault_sync/internal/info"
+	"github.com/postfinance/kubectl-vault_sync/internal/plugin"
 	"github.com/spf13/pflag"
 
 	"k8s.io/cli-runtime/pkg/genericclioptions"
